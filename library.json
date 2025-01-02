@@ -1,0 +1,29 @@
+{
+  "name": "DigitalFilters",
+  "version": "0.1.0",
+  "authors": {
+    "name": "Maximiliano Ramirez",
+    "email": "maximiliano.ramirezbravo@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alkonosst/DigitalFilters.git"
+  },
+  "description": "A robust library of digital filters for Arduino, built for efficiency and accuracy in your designs.",
+  "keywords": "arduino, digital, filters, adc, analog, dsp, signal, processing, iir, fir, butterworth, chebyshev, bessel, order, frequency",
+  "license": "GPL-3.0-or-later",
+  "frameworks": "arduino",
+  "headers": [
+    "Filters.h",
+    "LowPass1.h",
+    "HighPass1.h",
+    "LowPass2.h",
+    "HighPass2.h",
+    "PassBand2.h",
+    "StopBand2.h",
+    "ButterworthLowPass2.h",
+    "ButterworthHighPass2.h",
+    "ButterworthLowPass3.h",
+    "ButterworthHighPass3.h"
+  ]
+}
