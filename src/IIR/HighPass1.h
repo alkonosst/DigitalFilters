@@ -7,24 +7,27 @@ namespace Filters::IIR {
 // 1° Order High-Pass filter
 class HighPass1 : public IFilter {
   public:
-  HighPass1(uint32_t period_ms = 0, FType k = 0, FType tau = 0)
-      : _period_ms(0)
+  HighPass1(const uint32_t period_us = 100 * 1000, const FType tau = 1, const FType gain = 1)
+      : _period_us(period_us)
       , _T(0)
-      , _k(0)
-      , _tau(0)
+      , _k(gain)
+      , _tau(tau)
       , _a(0)
       , _b(0)
-      , _y0{0}
+      , _y0(0)
       , _y1(0)
-      , _u1(0) {}
-
-  void setPeriod(const uint32_t period_ms) {
-    _period_ms = period_ms;
-    _T         = period_ms / FType(1000);
+      , _u1(0) {
+    setPeriod(period_us);
     updateCoefficients();
   }
 
-  uint32_t getPeriod() const { return _period_ms; }
+  void setPeriod(const uint32_t period_us) {
+    _period_us = period_us;
+    _T         = period_us / FType(1000000);
+    updateCoefficients();
+  }
+
+  uint32_t getPeriod() const { return _period_us; }
 
   void setGain(const FType gain) {
     _k = gain;
@@ -46,6 +49,12 @@ class HighPass1 : public IFilter {
   }
 
   FType getCutOffFrequency() const { return 1 / (2 * PI * _tau); }
+
+  void setInitialValue(const FType initial_value) override {
+    _y0 = initial_value;
+    _y1 = initial_value;
+    _u1 = initial_value;
+  }
 
   FType update(const FType input) override {
     // Calculate output
@@ -72,7 +81,7 @@ class HighPass1 : public IFilter {
     _b = 2 * _k * _tau / (_T + 2 * _tau);
   }
 
-  uint32_t _period_ms;
+  uint32_t _period_us;
   FType _T;
   FType _k, _tau;
   FType _a, _b;

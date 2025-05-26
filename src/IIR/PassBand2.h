@@ -7,28 +7,33 @@ namespace Filters::IIR {
 // 2° Order Pass-Band filter
 class PassBand2 : public IFilter {
   public:
-  PassBand2()
-      : _period_ms(0)
+  PassBand2(const uint32_t period_us = 100 * 1000, const FType center_freq_hz = 1,
+            const FType bandwidth_hz = 1, const FType gain = 1)
+      : _period_us(period_us)
       , _T(0)
-      , _k(0)
-      , _wn(0)
-      , _z(0)
+      , _k(gain)
+      , _w0(0)
+      , _bw(bandwidth_hz)
       , _a1(0)
       , _a2(0)
       , _b(0)
-      , _y0{0}
+      , _y0(0)
       , _y1(0)
       , _y2(0)
       , _u1(0)
-      , _u2(0) {}
-
-  void setPeriod(const uint32_t period_ms) {
-    _period_ms = period_ms;
-    _T         = period_ms / FType(1000);
+      , _u2(0) {
+    setPeriod(period_us);
+    setCenterFrequency(center_freq_hz);
     updateCoefficients();
   }
 
-  uint32_t getPeriod() const { return _period_ms; }
+  void setPeriod(const uint32_t period_us) {
+    _period_us = period_us;
+    _T         = period_us / FType(1000000);
+    updateCoefficients();
+  }
+
+  uint32_t getPeriod() const { return _period_us; }
 
   void setGain(const FType gain) {
     _k = gain;
@@ -37,19 +42,27 @@ class PassBand2 : public IFilter {
 
   FType getGain() const { return _k; }
 
-  void setCutOffFrequency(const FType fc_hz) {
-    _wn = 2 * PI * fc_hz;
+  void setCenterFrequency(const FType center_freq_hz) {
+    _w0 = 2 * PI * center_freq_hz;
     updateCoefficients();
   }
 
-  FType getCutOffFrequency() const { return _wn / (2 * PI); }
+  FType getCenterFrequency() const { return _w0 / (2 * PI); }
 
-  void setBandwidth(const FType bw_hz) {
-    _z = bw_hz / (2 * _wn);
+  void setBandwidth(const FType bandwidth_hz) {
+    _bw = bandwidth_hz;
     updateCoefficients();
   }
 
-  FType getBandwidth() const { return 2 * _z * _wn; }
+  FType getBandwidth() const { return _bw; }
+
+  void setInitialValue(const FType initial_value) override {
+    _y0 = initial_value;
+    _y1 = initial_value;
+    _y2 = initial_value;
+    _u1 = initial_value;
+    _u2 = initial_value;
+  }
 
   FType update(const FType input) override {
     // Calculate output
@@ -76,15 +89,15 @@ class PassBand2 : public IFilter {
 
   private:
   void updateCoefficients() {
-    FType den = _T * _T * _wn * _wn + 4 * _z * _T * _wn + 4;
-    _a1       = -(2 * _T * _T * _wn * _wn - 8) / den;
-    _a2       = -(_T * _T * _wn * _wn - 4 * _z * _T * _wn + 4) / den;
-    _b        = 4 * _T * _k * _wn * _z / den;
+    FType den = _T * _T * _w0 * _w0 + 2 * _bw * _T + 4;
+    _a1       = -(2 * _T * _T * _w0 * _w0 - 8) / den;
+    _a2       = -(_T * _T * _w0 * _w0 - 2 * _bw * _T + 4) / den;
+    _b        = 2 * _T / den;
   }
 
-  uint32_t _period_ms;
+  uint32_t _period_us;
   FType _T;
-  FType _k, _wn, _z;
+  FType _k, _w0, _bw;
   FType _a1, _a2, _b;
   FType _y0, _y1, _y2, _u1, _u2;
 };

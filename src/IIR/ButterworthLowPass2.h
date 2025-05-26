@@ -7,27 +7,31 @@ namespace Filters::IIR {
 // 2° Order Butterworth Low-Pass filter
 class ButterworthLowPass2 : public IFilter {
   public:
-  ButterworthLowPass2()
-      : _period_ms(0)
+  ButterworthLowPass2(const uint32_t period_us = 100 * 1000, const FType tau = 1,
+                      const FType gain = 1)
+      : _period_us(period_us)
       , _T(0)
-      , _k(0)
-      , _tau(0)
+      , _k(gain)
+      , _tau(tau)
       , _a1(0)
       , _a2(0)
       , _b(0)
-      , _y0{0}
+      , _y0(0)
       , _y1(0)
       , _y2(0)
       , _u1(0)
-      , _u2(0) {}
-
-  void setPeriod(const uint32_t period_ms) {
-    _period_ms = period_ms;
-    _T         = period_ms / FType(1000);
+      , _u2(0) {
+    setPeriod(period_us);
     updateCoefficients();
   }
 
-  uint32_t getPeriod() const { return _period_ms; }
+  void setPeriod(const uint32_t period_us) {
+    _period_us = period_us;
+    _T         = period_us / FType(1000000);
+    updateCoefficients();
+  }
+
+  uint32_t getPeriod() const { return _period_us; }
 
   void setGain(const FType gain) {
     _k = gain;
@@ -49,6 +53,14 @@ class ButterworthLowPass2 : public IFilter {
   }
 
   FType getCutOffFrequency() const { return 1 / (2 * PI * _tau); }
+
+  void setInitialValue(const FType initial_value) override {
+    _y0 = initial_value;
+    _y1 = initial_value;
+    _y2 = initial_value;
+    _u1 = initial_value;
+    _u2 = initial_value;
+  }
 
   FType update(const FType input) override {
     // Calculate output
@@ -81,12 +93,13 @@ class ButterworthLowPass2 : public IFilter {
     _b        = _T * _T * _k / den;
   }
 
-  uint32_t _period_ms;
+  uint32_t _period_us;
   FType _T;
   FType _k, _tau;
   FType _a1, _a2, _b;
   FType _y0, _y1, _y2, _u1, _u2;
-  const static FType _SQRT_2 = 1.4142135623730950488016887242097;
+
+  constexpr static FType _SQRT_2 = 1.4142135623730950488016887242097;
 };
 
 } // namespace Filters::IIR

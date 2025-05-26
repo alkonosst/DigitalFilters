@@ -13,9 +13,10 @@ namespace Filters {
 // Interface class, useful when using pointers
 class IFilter {
   public:
-  virtual FType update(const FType input) = 0;
-  virtual FType getOutput() const         = 0;
-  virtual void reset()                    = 0;
+  virtual void setInitialValue(const FType initial_value) = 0;
+  virtual FType update(const FType input)                 = 0;
+  virtual FType getOutput() const                         = 0;
+  virtual void reset()                                    = 0;
 };
 
 } // namespace Filters
